@@ -1,0 +1,55 @@
+body{
+	margin: 0;
+	padding: 0;
+}
+
+#navbar{
+	background-color: #333;
+	color: white;
+	height: 150px;
+	width: 100%;
+	text-align: center;
+}
+
+#navbar h1{
+	margin: 0;
+}
+
+
+#main-content {
+	background-color: #f4f4f4;
+    display: flex;
+    height: calc(100vh - 150px - 40px);
+    padding: 20px;
+}
+
+.sidebar {
+    background-color: #ddd;
+    width: 200px;
+    height: calc(100% - 40px);
+    padding: 20px;
+}
+
+.content {
+    background-color: #fff;
+    flex: 1;
+    padding: 20px;
+}
+
+/*laptop*/
+@media (max-width: 1024px) {
+	.content {
+		background-color: green;
+	}
+}
+
+
+/*tablet*/
+@media (max-width: 768px) {
+	.content {
+		background-color: pink;
+	}
+}
+
+
+
