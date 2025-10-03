@@ -1,0 +1,120 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  background: #f6f7f9;
+  padding: 0;
+}
+
+
+#header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 48px;
+  padding: 64px 48px 64px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+}
+#header h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  flex: 1; 
+  min-width: 300px; 
+}
+.header-items {
+  display: flex;
+  flex: 2;                         
+  justify-content: space-around;
+}
+.header-items h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+
+/* Sidebar */
+#sidebar {
+  background: #ececec;
+  padding: 48px;
+}
+#sidebar h3,
+#resultId {
+  margin-top: 0;
+  letter-spacing: 1px;
+}
+
+#resultId {
+  font-size: 56px;
+  font-weight: 800;
+  margin-top: 8px;
+  line-height: 1.1;
+}
+
+/* Main-content */
+#main-content {
+  background: #fff;
+  padding: 48px;
+}
+#main-content h3 {
+  margin-top: 0;
+  text-transform: uppercase;
+}
+
+/* Control Button */
+.controls {
+  margin-top: 16px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.controls button {
+  min-width: 140px;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: none;
+  background: #e0e0e0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease; /* ease of button transition */
+}
+
+/* When hovering, change the color of button */
+.controls button:hover {
+  background: #bee2f9;
+  color: #0b466b;
+}
+
+
+/* Responsive layout */
+/* When less than 768px, change to single-column three-row layout */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}
+
+/* When width less than 900px, hide the third item */
+@media (max-width: 900px) {
+  .header-items h4:nth-child(3) {
+    display: none;
+  }
+}
+
+/* When width less than 750px, hide the second item */
+@media (max-width: 750px) {
+  .header-items h4:nth-child(2) {
+    display: none;
+  }
+}
