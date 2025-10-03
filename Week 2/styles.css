@@ -1,0 +1,25 @@
+h1{
+    color: #28282b;
+    font-size: 54px;
+}
+
+p{
+    color: #a8a8a8;
+    font-size: 15px;
+}
+
+button {
+    padding: 20px 40px;
+    border-radius: 50px;
+    border: 0;
+    font-size: 30px;
+    color: #ffffff;
+    background-color: #28282b;
+    font-weight: lighter;
+}
+
+button:hover {
+  background-color: #9cddff; 
+  color: white;  
+}
+}
