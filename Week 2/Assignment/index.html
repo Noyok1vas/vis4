@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>YOKIS NUMBER ADDER</title>
+
+  <!-- Font: Montserrat -->
+ <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;700;800&display=swap" rel="stylesheet">
+
+
+  <link rel="stylesheet" href="styles.css" />
+
+</head>
+<body>
+  <!-- Header -->
+  <div id="header">
+    <h1>YOKIS NUMBER ADDER</h1>
+    <div class="header-items">
+    	<h4>ITEM 1</h4>
+    	<h4>ITEM 2</h4>
+    	<h4>ITEM 3</h4>
+    </div>
+  </div>
+
+  <!-- Sidebar -->
+  <div id="sidebar">
+    <h3>RESULT</h3>
+    <p id="resultId">0</p>
+  </div>
+
+  <!-- Main-content -->
+  <div id="main-content">
+    <h3>Control Center</h3>
+    <div class="controls">
+      <button id="btnMinus2">-2</button>
+      <button id="btnMinus1">-1</button>
+      <button id="btnReset">Reset</button>
+      <button id="btnPlus1">+1</button>
+      <button id="btnPlus2">+2</button>
+    </div>
+  </div>
+
+  <script>
+  var total = 0;
+  var resultEl = document.getElementById("resultId");
+
+  function update(v) {
+    total = v;
+    resultEl.textContent = total;
+  }
+
+  document.getElementById("btnMinus2").addEventListener("click", function(){ update(total - 2); });
+  document.getElementById("btnMinus1").addEventListener("click", function(){ update(total - 1); });
+  document.getElementById("btnReset") .addEventListener("click", function(){ update(0); });
+  document.getElementById("btnPlus1") .addEventListener("click", function(){ update(total + 1); });
+  document.getElementById("btnPlus2") .addEventListener("click", function(){ update(total + 2); });
+</script>
+</body>
+</html>
