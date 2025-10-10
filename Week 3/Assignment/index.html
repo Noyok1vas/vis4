@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="google" content="notranslate">
+  <link rel="stylesheet" href="styles.css" />
+  <title></title>
+
+  <!-- Font: Montserrat -->
+ <link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;700;800&display=swap" rel="stylesheet">
+
+
+</head>
+<body>
+  <!-- Header -->
+  <header id="header">
+    <h1>YOKIS NUMBER ADDER</h1>
+    <nav class="header-items">
+      <h4>ITEM 1</h4>
+      <h4>ITEM 2</h4>
+      <h4>ITEM 3</h4>
+    </nav>
+  </header>
+
+  <!-- Sidebar -->
+  <aside id="sidebar">
+    <h3>RESULT</h3>
+    <p id="resultId">0</p>
+    <p id="totalMessage">The total is zero.</p>
+
+    <h3>SUMMARY</h3>
+    <p id="summary"></p>
+
+    <h3>HISTORY</h3>
+    <ul id="historyList"></ul>
+  </aside>
+
+  <!-- Main-content -->
+  <main id="main-content">
+    <h3>Control Center</h3>
+    <div class="controls-block">
+
+      <!-- Number Adder Button -->
+      <div class="controls">
+        <button id="buttonMinus2">-2</button>
+        <button id="buttonMinus1">-1</button>
+        <button id="buttonReset">Reset</button>
+        <button id="buttonPlus1">+1</button>
+        <button id="buttonPlus2">+2</button>
+      </div>
+
+      <!-- Clear All Button -->
+      <div class="clear-container">
+        <button id="buttonClearAll">Clear History & Results</button>
+      </div>
+    </div>
+  </main>
+
+
+  <script>
+// Number Adder
+  var total = 0;
+  var resultEl = document.getElementById("resultId");
+
+  function update(v) {
+    total = v;
+    resultEl.textContent = total;
+    checkTotal(); 
+  }
+
+
+// Check Total Message
+function checkTotal() {
+    if (total > 0) {
+        document.querySelector("#totalMessage").innerHTML = "The total is positive.";
+    } else if (total < 0) {
+        document.querySelector("#totalMessage").innerHTML = "The total is negative.";
+    } else {
+        document.querySelector("#totalMessage").innerHTML = "The total is zero.";
+    }
+}
+checkTotal();
+
+
+// Add & Minus Count
+  let operationCount = { additions: 0, subtractions: 0 };
+  function updateSummary() {
+    document.querySelector("#summary").innerHTML =
+    `Total additions: ${operationCount.additions}<br>` +
+    `Total subtractions: ${operationCount.subtractions}`;
+  }
+  updateSummary();
+
+
+// History Record
+  let history = [];
+
+  function updateHistory() {
+  let historyContent = "";
+  for (let i = 0; i < history.length; i++) {
+    historyContent += "<li onclick='removeHistoryItem(" + i + ")'>" + history[i] + "</li>";
+  }
+  document.querySelector("#historyList").innerHTML = historyContent;
+}
+
+
+// Delete History
+  function removeHistoryItem(index) {
+  history.splice(index, 1);
+  updateHistory(); 
+}
+
+
+//Update UI
+  function updateResults() {
+  updateHistory();
+  updateSummary();
+  checkTotal();
+  }
+
+
+// Clear All
+  function ClearAll() {
+  total = 0;
+  history = [];
+  operationCount.additions = 0;
+  operationCount.subtractions = 0;
+
+  update(total);
+  updateResults();
+}
+
+
+
+
+// Event Listener
+   document.getElementById("buttonMinus2").addEventListener("click", function() {
+      update(total - 2);
+      history.push("-2");
+      operationCount.subtractions += 1; 
+      updateHistory();
+      updateSummary(); 
+    });
+
+    document.getElementById("buttonMinus1").addEventListener("click", function() {
+      update(total - 1);
+      history.push("-1");
+      operationCount.subtractions += 1;
+      updateHistory();
+      updateSummary(); 
+    });
+
+    document.getElementById("buttonReset").addEventListener("click", function() {
+      update(0);
+      history.push("Reset");
+      updateHistory();
+      updateSummary(); 
+    });
+
+    document.getElementById("buttonPlus1").addEventListener("click", function() {
+      update(total + 1);
+      history.push("+1");
+      operationCount.additions += 1;
+      updateHistory();
+      updateSummary(); 
+    });
+
+    document.getElementById("buttonPlus2").addEventListener("click", function() {
+      update(total + 2);
+      history.push("+2");
+      operationCount.additions += 1;
+      updateHistory();
+      updateSummary(); 
+    });
+
+    document.getElementById("buttonClearAll").addEventListener("click", ClearAll);
+
+</script>
+</body>
+</html>

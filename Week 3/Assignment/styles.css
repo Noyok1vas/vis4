@@ -1,0 +1,180 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+
+body {
+  margin: 0;
+  font-family: "Montserrat", system-ui, -apple-system, "Segoe UI", Roboto, Arial, "Helvetica Neue", sans-serif;
+
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) minmax(0, 2fr);
+  grid-template-rows: auto 1fr;
+  gap: 0;
+  background: #f6f7f9;
+  padding: 0;
+}
+
+
+/* Header */
+#header {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: baseline;
+  gap: 48px;
+  padding: 64px 48px 64px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+}
+#header h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  flex: 1; 
+  min-width: 300px; 
+}
+.header-items {
+  display: flex;
+  flex: 2;                         
+  justify-content: space-around;
+}
+.header-items h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+
+/* Sidebar */
+#sidebar {
+  background: #ececec;
+  padding: 48px;
+}
+#sidebar h3,
+#resultId {
+  margin-top: 0;
+  letter-spacing: 1px;
+}
+
+#resultId {
+  font-size: 56px;
+  font-weight: 800;
+  margin: 8px 0 18px;
+  line-height: 1.1;
+}
+
+#totalMessage {
+  margin: 4px 0 24px; 
+  font-weight: 500; 
+  font-size: 13px; 
+  color: #777; 
+  line-height: 1.6;
+  border-bottom: 1px solid #dcdcdc;
+  padding-bottom: 24px;
+}
+
+#summary {
+  min-height: 84px;
+  margin-bottom: 32px;
+  padding: 8px 0;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.5;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+#historyList {
+  list-style: none;
+  margin-top: 16px;
+  padding-left: 0px;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#historyList li { cursor: pointer; }
+#historyList li:hover { text-decoration: line-through; opacity: .7; }
+
+
+/* Main-content */
+#main-content {
+  background: #fff;
+  padding: 48px;
+}
+#main-content h3 {
+  margin-top: 0;
+  text-transform: uppercase;
+}
+
+
+/* Control Button */
+.controls-block {
+  width: max-content;
+  max-width: 100%;
+}
+
+.controls {
+  margin-top: 16px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.controls button {
+  min-width: 140px;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: none;
+  background: #e0e0e0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease; /* ease of button transition */
+}
+
+.clear-container {margin-top: 16px;}
+
+#buttonClearAll {
+  display: block; 
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: none;
+  background: #e0e0e0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+
+/* When hovering, change the color of button */
+.controls button:hover {
+  background: #bee2f9;
+  color: #0b466b;
+}
+#buttonClearAll:hover {
+  background: #4f2bff;
+  color: #ffffff;
+}
+
+
+/* Responsive layout */
+/* When less than 768px, change to single-column three-row layout */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}
+
+/* When width less than 900px, hide the third item */
+@media (max-width: 900px) {
+  .header-items h4:nth-child(3) {
+    display: none;
+  }
+}
+
+/* When width less than 750px, hide the second item */
+@media (max-width: 750px) {
+  .header-items h4:nth-child(2) {
+    display: none;
+  }
+}
