@@ -1,0 +1,48 @@
+#sidebar {
+  background: #ececec;
+  padding: 48px;
+}
+#sidebar h3,
+#resultId {
+  margin-top: 0;
+  letter-spacing: 1px;
+}
+
+#resultId {
+  font-size: 56px;
+  font-weight: 800;
+  margin: 8px 0 18px;
+  line-height: 1.1;
+}
+
+#totalMessage {
+  margin: 4px 0 24px; 
+  font-weight: 500; 
+  font-size: 13px; 
+  color: #777; 
+  line-height: 1.6;
+  border-bottom: 1px solid #dcdcdc;
+  padding-bottom: 24px;
+}
+
+#summary {
+  min-height: 84px;
+  margin-bottom: 32px;
+  padding: 8px 0;
+  font-weight: 600;
+  color: #333;
+  line-height: 1.5;
+  border-bottom: 1px solid #dcdcdc;
+}
+
+#historyList {
+  list-style: none;
+  margin-top: 16px;
+  padding-left: 0px;
+  color: #333;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+#historyList li { cursor: pointer; }
+#historyList li:hover { text-decoration: line-through; opacity: .7; }

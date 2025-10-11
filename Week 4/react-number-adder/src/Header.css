@@ -1,0 +1,43 @@
+#header {
+  /*grid-column: 1 / -1;*/
+  display: flex;
+  align-items: baseline;
+  gap: 48px;
+  padding: 64px 48px 64px;
+  border-bottom: 1px solid #eaeaea;
+  background: #fff;
+}
+
+#header h1 {
+  margin: 0;
+  font-weight: 800;
+  font-size: 20px;
+  flex: 1; 
+  min-width: 300px; 
+}
+.header-items {
+  display: flex;
+  flex: 2;                         
+  justify-content: space-around;
+}
+.header-items h4 {
+  margin: 0;
+  font-weight: 600;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+}
+
+
+/* When width less than 900px, hide the third item */
+@media (max-width: 900px) {
+  .header-items h4:nth-child(3) {
+    display: none;
+  }
+}
+
+/* When width less than 750px, hide the second item */
+@media (max-width: 750px) {
+  .header-items h4:nth-child(2) {
+    display: none;
+  }
+}

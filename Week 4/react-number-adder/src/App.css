@@ -1,0 +1,15 @@
+.App{
+}
+
+.MainPage {
+  display: flex;
+}
+
+/* Responsive layout */
+/* When less than 768px, change to single-column three-row layout */
+@media (max-width: 768px) {
+  body {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+}

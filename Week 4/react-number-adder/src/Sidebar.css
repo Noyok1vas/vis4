@@ -1,0 +1,9 @@
+#sidebar {
+  background: #ececec;
+  padding: 48px;
+}
+#sidebar h3,
+#resultId {
+  margin-top: 0;
+  letter-spacing: 1px;
+}
