@@ -1,15 +1,31 @@
-.App{
+html, body, #root { height: 100%; }
+
+.App {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #f6f7f9;
 }
 
 .MainPage {
   display: flex;
+  flex: 1;
+  min-height: 0; 
 }
 
-/* Responsive layout */
-/* When less than 768px, change to single-column three-row layout */
-@media (max-width: 768px) {
-  body {
-    grid-template-columns: 1fr;
-    grid-template-rows: auto auto auto;
-  }
+#sidebar {
+  flex: 1;
+  background: #ececec;
+  padding: 48px;
+  box-sizing: border-box;
+  overflow-y: auto;
+}
+
+
+.MainContent {
+  flex: 2;
+  background: #fff;
+  padding: 48px;
+  box-sizing: border-box;
+  overflow-y: auto;
 }

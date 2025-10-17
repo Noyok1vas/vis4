@@ -2,7 +2,57 @@
   background: #fff;
   padding: 48px;
 }
+
 #main-content h3 {
   margin-top: 0;
   text-transform: uppercase;
+}
+
+.controls-block {
+  width: max-content;
+  max-width: 100%;
+}
+
+.controls {
+  margin-top: 16px;
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.controls button {
+  min-width: 140px;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: none;
+  background: #e0e0e0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.clear-container {
+  margin-top: 16px;
+}
+
+#buttonClearAll {
+  display: block;
+  width: 100%;
+  padding: 14px 18px;
+  border-radius: 30px;
+  border: none;
+  background: #e0e0e0;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.controls button:hover {
+  background: #bee2f9;
+  color: #0b466b;
+}
+
+#buttonClearAll:hover {
+  background: #4f2bff;
+  color: #ffffff;
 }
