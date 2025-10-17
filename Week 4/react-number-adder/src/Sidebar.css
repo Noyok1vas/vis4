@@ -45,6 +45,29 @@
   line-height: 1.5;
 }
 
+#historyList li {
+  position: relative;
+  cursor: pointer; /* turning the cursor to pointer when hovering */
+  padding-right: 120px; 
+}
+
+/* Showing 'delete' texts when hovering */
+#historyList li::after {
+  content: "delete";
+  position: absolute;
+  right: 0;
+  top: 0;
+  font-size: 12px;
+  opacity: 0; /* hide text by default */
+  transform: translateX(8px);
+}
+
+#historyList li:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+  color: #949494; 
+}
+
 #historyList li:hover {
   text-decoration: line-through;
   opacity: 0.7;

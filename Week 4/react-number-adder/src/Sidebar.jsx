@@ -1,29 +1,38 @@
-// Sidebar.jsx
+//Sidebar.jsx
 import "./Sidebar.css";
-import React from 'react';
-import { useSelector, useDispatch } from 'react-redux';
+import React, { useEffect, useState } from "react";
+import { useSelector, useDispatch } from "react-redux";
 
 function Sidebar() {
   const dispatch = useDispatch();
   const count = useSelector((state) => state.count);
   const history = useSelector((state) => state.history);
 
-  const totalMessage =
-    count > 0 ? "The total is positive."
-    : count < 0 ? "The total is negative."
-    : "The total is zero.";
+  const [summary, setSummary] = useState({ additions: 0, subtractions: 0 });
 
-  const { additions, subtractions } = history.reduce(
-    (acc, item) => {
-      if (item === "RESET") return acc;
-      if (typeof item === "number") {
-        if (item > 0) acc.additions += 1;
-        if (item < 0) acc.subtractions += 1;
-      }
-      return acc;
-    },
-    { additions: 0, subtractions: 0 }
-  );
+  useEffect(() => {
+    const newSummary = history.reduce(
+      (acc, item) => {
+        if (item === "RESET") return acc;
+        const num = Number(item); 
+        if (!isNaN(num)) {
+          if (num > 0) acc.additions += 1;
+          if (num < 0) acc.subtractions += 1;
+        }
+        return acc;
+      },
+      { additions: 0, subtractions: 0 }
+    );
+
+    setSummary(newSummary);
+  }, [history]); 
+
+  const totalMessage =
+    count > 0
+      ? "The total is positive."
+      : count < 0
+      ? "The total is negative."
+      : "The total is zero.";
 
   return (
     <aside id="sidebar">
@@ -33,8 +42,8 @@ function Sidebar() {
 
       <h3>SUMMARY</h3>
       <p id="summary">
-        Total additions: {additions}<br />
-        Total subtractions: {subtractions}
+        Total additions: {summary.additions}<br />
+        Total subtractions: {summary.subtractions}
       </p>
 
       <h3>HISTORY</h3>
@@ -42,7 +51,7 @@ function Sidebar() {
         {history.map((item, i) => (
           <li
             key={i}
-            onClick={() => dispatch({ type: 'UPDATE_HISTORY', payload: i })}
+            onClick={() => dispatch({ type: "UPDATE_HISTORY", payload: i })}
           >
             {item}
           </li>
