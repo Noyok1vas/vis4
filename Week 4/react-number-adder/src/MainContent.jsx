@@ -1,7 +1,8 @@
-// MainContent.jsx
+// mainContent.jsx
 import "./MainContent.css";
 import React from 'react';
 import { useDispatch } from 'react-redux';
+import ControlButton from './ControlButton';
 
 function MainContent() {
   const dispatch = useDispatch();
@@ -18,21 +19,11 @@ function MainContent() {
 
       <div className="controls-block">
         <div className="controls">
-          <button id="buttonMinus2" onClick={() => { 
-            console.log("-2"); handleRemove2(); 
-          }}>-2</button>
-          <button id="buttonMinus1" onClick={() => { 
-            console.log("-1"); handleRemove1(); 
-          }}>-1</button>
-          <button id="buttonReset"  onClick={() => { 
-            console.log("Reset"); handleReset(); 
-          }}>Reset</button>
-          <button id="buttonPlus1"  onClick={() => { 
-            console.log("+1"); handleAdd1(); 
-          }}>+1</button>
-          <button id="buttonPlus2"  onClick={() => { 
-            console.log("+2"); handleAdd2(); 
-          }}>+2</button>
+          <ControlButton id="buttonMinus2" label="-2" actionType="REMOVE_2" onClick={() => console.log("-2")} />
+          <ControlButton id="buttonMinus1" label="-1" actionType="REMOVE_1" onClick={() => console.log("-1")} />
+          <ControlButton id="buttonReset"  label="Reset" actionType="RESET" onClick={() => console.log("Reset")} />
+          <ControlButton id="buttonPlus1"  label="+1" actionType="ADD_1" onClick={() => console.log("+1")} />
+          <ControlButton id="buttonPlus2"  label="+2" actionType="ADD_2" onClick={() => console.log("+2")} />
         </div>
 
         <div className="clear-container">

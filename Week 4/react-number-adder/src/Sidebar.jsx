@@ -1,4 +1,4 @@
-//Sidebar.jsx
+//sidebar.jsx
 import "./Sidebar.css";
 import React, { useEffect, useState } from "react";
 import { useSelector, useDispatch } from "react-redux";

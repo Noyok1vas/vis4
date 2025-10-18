@@ -1,8 +1,10 @@
-// store.js
+// Store.js
 import { createStore } from 'redux';
 
+// Initial state - holds the application's date
+// including a count and a history
 const initialState = {
-  history: [],  // e.g. [1, -2, 'RESET', 2]
+  history: [], 
   count: 0,
 };
 
