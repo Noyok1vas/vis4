@@ -11,7 +11,7 @@ export default function RootLayout() {
           borderTopWidth: 1,
           borderTopColor: "#ccc",
         },
-        tabBarActiveTintColor: "#007AFF",
+        tabBarActiveTintColor: "#5daafc",
         tabBarInactiveTintColor: "#888",
       }}
     >
