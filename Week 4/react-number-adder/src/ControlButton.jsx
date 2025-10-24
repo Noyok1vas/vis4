@@ -19,5 +19,3 @@ function ControlButton({ id, label, actionType, payload, onClick }) {
 }
 
 export default ControlButton;
-
-
