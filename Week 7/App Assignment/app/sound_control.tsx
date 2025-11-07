@@ -1,11 +1,18 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions, PanResponder } from 'react-native';
 import { router } from 'expo-router';
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 
 const screenWidth = Dimensions.get('window').width;
 
 export default function SoundControlScreen() {
   const [soundMode, setSoundMode] = useState('STUDIO');
+  const [scrollEnabled, setScrollEnabled] = useState(true);
+  // EQ sliders state - 7 bands: 200, 400, 800, 1k, 3k, 6k, 8k
+  const [eqValues, setEqValues] = useState([0, 0, 0, 0, 0, 0, 0]); // Values from -12 to +12 dB
+  const eqLabels = ['200', '400', '800', '1k', '3k', '6k', '8k'];
+  const activeSliderRef = useRef<number | null>(null);
+  const lastYRef = useRef<number>(0);
+
   return (
     <View style={styles.container}>
       {/* Top navigation bar */}
@@ -16,7 +23,7 @@ export default function SoundControlScreen() {
         >
           <View style={styles.buttonCircle}>
             <Image 
-              source={require('../assets/chevron-left.png')} 
+              source={require('../assets/icon/chevron-left.png')} 
               style={styles.chevronIcon}
               resizeMode="contain"
             />
@@ -31,7 +38,7 @@ export default function SoundControlScreen() {
         >
           <View style={styles.buttonCircle}>
             <Image 
-              source={require('../assets/chevron-right.png')} 
+              source={require('../assets/icon/chevron-right.png')} 
               style={styles.chevronIcon}
               resizeMode="contain"
             />
@@ -40,15 +47,97 @@ export default function SoundControlScreen() {
       </View>
 
       {/* Content area */}
-      <ScrollView style={styles.content} contentContainerStyle={styles.contentContainer}>
+      <ScrollView 
+        style={styles.content} 
+        contentContainerStyle={styles.contentContainer}
+        scrollEnabled={scrollEnabled}
+        nestedScrollEnabled={false}
+      >
         {/* Equalizer section */}
         <Text style={styles.equalizerTitle}>Equalizer</Text>
         <View style={styles.equalizerContainer}>
-          <Image 
-            source={require('../assets/EQbalance.png')} 
-            style={styles.equalizerImage}
-            resizeMode="contain"
-          />
+          <View style={styles.eqSlidersContainer}>
+            {eqLabels.map((label, index) => {
+              const value = eqValues[index];
+              const normalizedValue = (value + 12) / 24; // Convert -12 to +12 to 0 to 1
+              const sliderHeight = 200;
+              const thumbTop = sliderHeight * (1 - normalizedValue) - 10; // Position from top, center the thumb (thumb height is 20)
+              const fillHeight = normalizedValue * sliderHeight; // Fill from bottom
+              
+              const createPanResponder = (sliderIndex: number) => {
+                return PanResponder.create({
+                  onStartShouldSetPanResponder: () => {
+                    setScrollEnabled(false); // Disable scroll when starting to interact with slider
+                    return true;
+                  },
+                  onMoveShouldSetPanResponder: () => true,
+                  onPanResponderTerminationRequest: () => false, // Prevent termination by ScrollView
+                  onPanResponderGrant: (evt) => {
+                    activeSliderRef.current = sliderIndex;
+                    // Calculate initial position based on touch location within the container
+                    const touchY = evt.nativeEvent.locationY;
+                    const clampedY = Math.max(0, Math.min(sliderHeight, touchY));
+                    const initialNormalized = 1 - (clampedY / sliderHeight);
+                    const initialValue = Math.round((initialNormalized * 24) - 12);
+                    
+                    // Update the slider value immediately based on initial touch position
+                    const newEqValues = [...eqValues];
+                    newEqValues[sliderIndex] = initialValue;
+                    setEqValues(newEqValues);
+                    
+                    lastYRef.current = touchY;
+                  },
+                  onPanResponderMove: (evt, gestureState) => {
+                    if (activeSliderRef.current === sliderIndex) {
+                      const deltaY = gestureState.dy;
+                      const currentValue = eqValues[sliderIndex];
+                      const currentNormalized = (currentValue + 12) / 24;
+                      const currentPosition = sliderHeight * (1 - currentNormalized);
+                      // Upward drag (negative deltaY) should increase dB (decrease position from top)
+                      const newPosition = currentPosition + deltaY;
+                      const clampedPosition = Math.max(0, Math.min(sliderHeight, newPosition));
+                      const newNormalized = 1 - (clampedPosition / sliderHeight);
+                      const newValue = Math.round((newNormalized * 24) - 12); // Convert back to -12 to +12
+                      
+                      const newEqValues = [...eqValues];
+                      newEqValues[sliderIndex] = newValue;
+                      setEqValues(newEqValues);
+                    }
+                  },
+                  onPanResponderRelease: () => {
+                    activeSliderRef.current = null;
+                    setScrollEnabled(true); // Re-enable scroll when releasing slider
+                  },
+                  onPanResponderTerminate: () => {
+                    activeSliderRef.current = null;
+                    setScrollEnabled(true); // Re-enable scroll if terminated
+                  },
+                });
+              };
+              
+              const panResponder = createPanResponder(index);
+              
+              return (
+                <View key={index} style={styles.eqSliderWrapper}>
+                  <View style={styles.eqSliderTrackContainer} {...panResponder.panHandlers}>
+                    <View style={styles.eqSliderTrack}>
+                      <View style={[styles.eqSliderFill, { height: fillHeight }]} />
+                      <View 
+                        style={[
+                          styles.eqSliderThumb,
+                          { top: thumbTop } // Position from top, centered on thumb height
+                        ]} 
+                      />
+                    </View>
+                  </View>
+                  <View style={styles.eqSliderLabelContainer}>
+                    <Text style={styles.eqSliderLabel}>{label}</Text>
+                    <Text style={styles.eqSliderValue}>{value > 0 ? `+${value}` : value}dB</Text>
+                  </View>
+                </View>
+              );
+            })}
+          </View>
         </View>
 
         {/* Sound Mode section */}
@@ -94,31 +183,6 @@ export default function SoundControlScreen() {
           </View>
         </View>
 
-        {/* Music player */}
-        <View style={styles.playerSection}>
-          <View style={styles.playerContent}>
-            <View style={styles.albumArtPlaceholder} />
-            <View style={styles.playerInfo}>
-              <Text style={styles.songName}>Song Name</Text>
-              <Text style={styles.artist}>Artist</Text>
-              <View style={styles.playerProgressBar}>
-                <View style={styles.playerProgressFill} />
-              </View>
-            </View>
-            <View style={styles.playerControls}>
-              <Image 
-                source={require('../assets/play.png')} 
-                style={styles.playerIcon}
-                resizeMode="contain"
-              />
-              <Image 
-                source={require('../assets/forward.png')} 
-                style={styles.playerIcon}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -137,8 +201,8 @@ const styles = StyleSheet.create({
   },
   contentContainer: {
     paddingHorizontal: 24,
-    paddingTop: 20,
-    paddingBottom: 40,
+    paddingTop: 0,
+    paddingBottom: 100, // Increased for GlobalPlayer
   },
   navigation: {
     flexDirection: 'row',
@@ -188,9 +252,79 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  equalizerImage: {
+  eqSlidersContainer: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'flex-end',
     width: '100%',
+    gap: 8,
+  },
+  eqSliderWrapper: {
+    flex: 1,
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    height: 240,
+  },
+  eqSliderTrackContainer: {
     height: 200,
+    width: '100%',
+    minWidth: 44, // Minimum touch target size for better usability
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
+    paddingHorizontal: 18, // Expanded touch area (18px on each side)
+  },
+  eqSliderLabelContainer: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '100%',
+    height: 32,
+  },
+  eqSliderLabel: {
+    color: '#EDEDED',
+    fontSize: 12,
+    fontFamily: 'Courier',
+    marginBottom: 4,
+    textAlign: 'center',
+    width: '100%',
+  },
+  eqSliderValue: {
+    color: '#A3A3A3',
+    fontSize: 10,
+    fontFamily: 'Courier',
+    textAlign: 'center',
+    width: '100%',
+  },
+  eqSliderTrack: {
+    width: 8,
+    height: 200,
+    backgroundColor: '#121212',
+    borderRadius: 4,
+    position: 'relative',
+    justifyContent: 'center',
+  },
+  eqSliderFill: {
+    position: 'absolute',
+    bottom: 0,
+    left: 0,
+    right: 0,
+    backgroundColor: '#EDEDED',
+    borderRadius: 4,
+  },
+  eqSliderThumb: {
+    position: 'absolute',
+    width: 20,
+    height: 20,
+    borderRadius: 10,
+    backgroundColor: '#EDEDED',
+    shadowColor: '#121212',
+    shadowOffset: { width: 0, height: 3 },
+    shadowOpacity: 0.5,
+    shadowRadius: 3.84,
+    elevation: 5,
+
+    left: -6,
   },
   soundModeSection: {
     backgroundColor: '#2B2B2B',
@@ -233,60 +367,6 @@ const styles = StyleSheet.create({
   },
   soundModeTextInactive: {
     color: '#A3A3A3',
-  },
-  playerSection: {
-    backgroundColor: '#2B2B2B',
-    borderRadius: 28,
-    padding: 16,
-    borderWidth: 1,
-  },
-  playerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  albumArtPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    backgroundColor: '#D9D9D9',
-  },
-  playerInfo: {
-    flex: 1,
-  },
-  songName: {
-    color: '#D9D9D9',
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  artist: {
-    color: '#A3A3A3',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  playerControls: {
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
-  },
-  playerIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#FFFFFF',
-  },
-  playerProgressBar: {
-    width: '100%',
-    height: 2,
-    backgroundColor: '#A3A3A3',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  playerProgressFill: {
-    width: '30%',
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
   },
 });
 

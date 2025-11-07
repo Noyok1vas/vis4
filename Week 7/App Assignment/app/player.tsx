@@ -1,15 +1,36 @@
-import { View, Text, StyleSheet, TouchableOpacity, Image, PanResponder, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, Image, PanResponder, Dimensions, Animated } from 'react-native';
 import { router } from 'expo-router';
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
+import { useAudio } from '../contexts/AudioContext';
+import Waveform from '../components/Waveform';
 
 export default function PlayerScreen() {
   const [isCreationMode, setIsCreationMode] = useState(false);
   const [sliderPosition, setSliderPosition] = useState(0);
   const lastPosition = useRef(0);
   const sliderPositionRef = useRef(0);
+  const isCreationModeRef = useRef(isCreationMode);
+  // 使用 Animated.Value 来实现平滑的位置更新（只在非 Creation Mode 时使用）
+  const animatedPosition = useRef(new Animated.Value(0)).current;
+  const animationRef = useRef<Animated.CompositeAnimation | null>(null);
+  // Use global audio context
+  const { 
+    isPlaying, 
+    togglePlayPause, 
+    currentTrack, 
+    nextSong, 
+    previousSong, 
+    positionMillis, 
+    durationMillis,
+    currentWaveformData, // 获取当前波形数据
+  } = useAudio();
   
+  // 计算播放进度 (0-1)
+  const progress = durationMillis > 0 ? positionMillis / durationMillis : 0;
+
   // Selection frame coordinates: left and right edges (offset from center of screen)
   const screenWidth = Dimensions.get('window').width;
+  const waveformWidth = screenWidth * 3.0; // 波形总宽度
   const [selectionLeft, setSelectionLeft] = useState(-screenWidth * 0.15); // initial left edge position
   const [selectionRight, setSelectionRight] = useState(screenWidth * 0.15); // initial right edge position
   const selectionLeftRef = useRef(selectionLeft);
@@ -17,16 +38,121 @@ export default function PlayerScreen() {
   const lastSelectionLeft = useRef(selectionLeft);
   const lastSelectionRight = useRef(selectionRight);
   
+  // 计算自动位置：让播放位置在屏幕中心
+  // 播放位置在波形中的绝对位置：progress * waveformWidth
+  // 屏幕中心位置：screenWidth / 2
+  // 波形偏移量：autoPosition = screenWidth / 2 - progress * waveformWidth
+  const calculateAutoPosition = (progress: number): number => {
+    const playheadPosition = progress * waveformWidth;
+    const screenCenter = screenWidth / 2;
+    let autoPosition = screenCenter - playheadPosition;
+    
+    // 限制边界：确保波形不会超出可视范围
+    const maxOffset = (waveformWidth - screenWidth) / 2;
+    const minOffset = -(waveformWidth - screenWidth) / 2;
+    
+    // 限制在合理范围内
+    autoPosition = Math.max(Math.min(autoPosition, maxOffset), minOffset);
+    
+    return autoPosition;
+  };
+  
+  // 同步 isCreationMode 到 ref
+  useEffect(() => {
+    isCreationModeRef.current = isCreationMode;
+  }, [isCreationMode]);
+  
+  // 当切换 Creation Mode 时，重置 selection frame 和位置
+  useEffect(() => {
+    if (isCreationMode) {
+      // 进入 Creation Mode 时，重置 selection frame 到屏幕中间
+      const newSelectionLeft = -screenWidth * 0.15; // 重置到初始位置
+      const newSelectionRight = screenWidth * 0.15;
+      setSelectionLeft(newSelectionLeft);
+      setSelectionRight(newSelectionRight);
+      selectionLeftRef.current = newSelectionLeft;
+      selectionRightRef.current = newSelectionRight;
+      lastSelectionLeft.current = newSelectionLeft;
+      lastSelectionRight.current = newSelectionRight;
+      
+      // 取消动画，使用当前位置
+      if (animationRef.current) {
+        animationRef.current.stop();
+        animationRef.current = null;
+      }
+      animatedPosition.setValue(sliderPosition);
+    } else {
+      // 退出 Creation Mode 时，恢复到自动追踪位置
+      if (animationRef.current) {
+        animationRef.current.stop();
+        animationRef.current = null;
+      }
+      const autoPos = calculateAutoPosition(progress);
+      setSliderPosition(autoPos);
+      sliderPositionRef.current = autoPos;
+      animatedPosition.setValue(autoPos);
+    }
+  }, [isCreationMode]); // 当 Creation Mode 状态变化时
+  
+  // 在非 Creation Mode 时，根据播放进度自动调整波形位置，使播放位置始终在屏幕中心
+  useEffect(() => {
+    if (!isCreationMode) {
+      const autoPos = calculateAutoPosition(progress);
+      const currentPos = sliderPositionRef.current;
+      const diff = Math.abs(currentPos - autoPos);
+      
+      // 如果位置差异很小，直接设置
+      if (diff < 0.5) {
+        if (animationRef.current) {
+          animationRef.current.stop();
+          animationRef.current = null;
+        }
+        setSliderPosition(autoPos);
+        sliderPositionRef.current = autoPos;
+        animatedPosition.setValue(autoPos);
+      } else {
+        // 使用动画实现平滑过渡
+        if (animationRef.current) {
+          animationRef.current.stop();
+        }
+        
+        // 使用较短的动画时间（80-120ms），实现平滑但快速的追踪
+        const duration = Math.min(Math.max(diff * 0.2, 80), 120);
+        
+        animationRef.current = Animated.timing(animatedPosition, {
+          toValue: autoPos,
+          duration: duration,
+          useNativeDriver: false,
+        });
+        
+        animationRef.current.start(() => {
+          setSliderPosition(autoPos);
+          sliderPositionRef.current = autoPos;
+          animationRef.current = null;
+        });
+      }
+    } else {
+      // Creation Mode 时，取消动画，使用直接位置
+      if (animationRef.current) {
+        animationRef.current.stop();
+        animationRef.current = null;
+      }
+      animatedPosition.setValue(sliderPosition);
+    }
+  }, [progress, isCreationMode]); // 当播放进度变化或 Creation Mode 状态变化时更新
+  
   // synchronize ref and state
   sliderPositionRef.current = sliderPosition;
   selectionLeftRef.current = selectionLeft;
   selectionRightRef.current = selectionRight;
   
-  // Track slider PanResponder - lower priority to avoid conflict with edge dragging
+  // Track slider PanResponder - 只在 Creation Mode 时启用拖动
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false, // do not respond at start, let edge handle first
       onMoveShouldSetPanResponder: (evt, gestureState) => {
+        // 只在 Creation Mode 时响应
+        if (!isCreationModeRef.current) return false;
         // only respond when movement distance is large to avoid conflict with edge dragging
         return Math.abs(gestureState.dx) > 5 || Math.abs(gestureState.dy) > 5;
       },
@@ -37,7 +163,7 @@ export default function PlayerScreen() {
       onPanResponderMove: (evt, gestureState) => {
         const { dx } = gestureState;
         const screenWidth = Dimensions.get('window').width;
-        const trackWidth = screenWidth * 3.0; // track image width is 200% of screen, expand drag range
+        const trackWidth = screenWidth * 3.0; // track image width is 3 times screen width
         const maxOffset = (trackWidth - screenWidth) / 2; // maximum drag distance
         
         // calculate new position (based on last position + current drag distance)
@@ -64,7 +190,7 @@ export default function PlayerScreen() {
   // left edge dragging PanResponder - higher priority
   const leftEdgePanResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true, 
+      onStartShouldSetPanResponder: () => isCreationModeRef.current, // 只在 Creation Mode 时响应
       onMoveShouldSetPanResponder: () => true, 
       onPanResponderGrant: () => {
         lastSelectionLeft.current = selectionLeftRef.current;
@@ -93,7 +219,7 @@ export default function PlayerScreen() {
   // right edge dragging PanResponder - higher priority
   const rightEdgePanResponder = useRef(
     PanResponder.create({
-      onStartShouldSetPanResponder: () => true, 
+      onStartShouldSetPanResponder: () => isCreationModeRef.current, // 只在 Creation Mode 时响应
       onMoveShouldSetPanResponder: () => true, 
       onPanResponderGrant: () => {
         lastSelectionRight.current = selectionRightRef.current;
@@ -129,7 +255,7 @@ export default function PlayerScreen() {
         >
           <View style={styles.buttonCircle}>
             <Image 
-              source={require('../assets/chevron-left.png')} 
+              source={require('../assets/icon/chevron-left.png')} 
               style={styles.chevronIcon}
               resizeMode="contain"
             />
@@ -138,43 +264,53 @@ export default function PlayerScreen() {
 
         <Text style={styles.title}>Player</Text>
 
-        {/* right side empty, no forward button */}
-        <View style={styles.navButton} />
+        <TouchableOpacity 
+          style={styles.navButton} 
+          onPress={() => router.push('/playlist')}
+        >
+          <View style={styles.buttonCircle}>
+            <Image 
+              source={require('../assets/icon/chevron-right.png')} 
+              style={styles.chevronIcon}
+              resizeMode="contain"
+            />
+          </View>
+        </TouchableOpacity>
       </View>
 
       {/* Content area */}
       <View style={[styles.content, styles.contentContainer]}>
         {/* Song information */}
         <View style={styles.songInfo}>
-          <Text style={styles.songName}>Song Name</Text>
-          <Text style={styles.artist}>Artist</Text>
+          <Text style={styles.songName}>{currentTrack?.title || 'Song Name'}</Text>
+          <Text style={styles.artist}>{currentTrack?.artist || 'Artist'}</Text>
         </View>
 
         {/* Album art with playback controls */}
         <View style={styles.albumArtContainer}>
           <Image 
-            source={require('../assets/AlbumPic.png')} 
+            source={currentTrack?.albumArt || require('../assets/albumPic/A_SweetDream.png')} 
             style={styles.albumArt}
             resizeMode="cover"
           />
           <View style={styles.playbackControls}>
-            <TouchableOpacity style={styles.controlButton}>
+            <TouchableOpacity style={styles.controlButton} onPress={previousSong}>
               <Image 
-                source={require('../assets/backwardsolid.png')} 
+                source={require('../assets/icon/backwardsolid.png')} 
                 style={styles.controlIcon}
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.playButton}>
+            <TouchableOpacity style={styles.playButton} onPress={togglePlayPause}>
               <Image 
-                source={require('../assets/playsolid.png')} 
+                source={isPlaying ? require('../assets/icon/pause.png') : require('../assets/icon/playsolid.png')} 
                 style={styles.playIcon}
                 resizeMode="contain"
               />
             </TouchableOpacity>
-            <TouchableOpacity style={styles.controlButton}>
+            <TouchableOpacity style={styles.controlButton} onPress={nextSong}>
               <Image 
-                source={require('../assets/forwardsolid.png')} 
+                source={require('../assets/icon/forwardsolid.png')} 
                 style={styles.controlIcon}
                 resizeMode="contain"
               />
@@ -184,35 +320,71 @@ export default function PlayerScreen() {
 
         {/* Track visualization */}
         <View style={styles.trackContainer}>
-          <Image 
-            source={require('../assets/track.png')} 
-            style={[styles.trackImage, { transform: [{ translateX: sliderPosition }] }]}
-            resizeMode="contain"
-            {...panResponder.panHandlers}
-          />
+          {!isCreationMode ? (
+            // 非 Creation Mode：使用动画平滑追踪
+            <View style={styles.waveformWrapper}>
+              <Animated.View
+                style={[
+                  styles.waveformAnimatedWrapper,
+                  {
+                    transform: [{ translateX: animatedPosition }],
+                  },
+                ]}
+              >
+                <Waveform 
+                  waveformData={currentWaveformData}
+                  progress={progress}
+                  position={0}
+                  isPlaying={isPlaying}
+                />
+              </Animated.View>
+            </View>
+          ) : (
+            // Creation Mode：使用直接位置，允许拖动
+            <View {...panResponder.panHandlers} style={styles.waveformWrapper}>
+              <View
+                style={[
+                  styles.waveformAnimatedWrapper,
+                  {
+                    transform: [{ translateX: sliderPosition }],
+                  },
+                ]}
+              >
+                <Waveform 
+                  waveformData={currentWaveformData}
+                  progress={progress}
+                  position={0}
+                  isPlaying={isPlaying}
+                />
+              </View>
+            </View>
+          )}
           
-          {/* Selection frame overlay */}
-          <View 
-            style={[
-              styles.selectionFrame,
-              {
-                left: screenWidth / 2 + selectionLeft + sliderPosition,
-                width: selectionRight - selectionLeft,
-              },
-            ]}
-          >
-            {/* Left edge handle */}
+          {/* Selection frame overlay - 只在 Creation Mode 时显示 */}
+          {isCreationMode && (
             <View 
-              style={styles.selectionEdgeHandle}
-              {...leftEdgePanResponder.panHandlers}
-            />
-            
-            {/* Right edge handle */}
-            <View 
-              style={[styles.selectionEdgeHandle, styles.selectionEdgeHandleRight]}
-              {...rightEdgePanResponder.panHandlers}
-            />
-          </View>
+              style={[
+                styles.selectionFrame,
+                {
+                  left: screenWidth / 2 + selectionLeft,
+                  width: selectionRight - selectionLeft,
+                  transform: [{ translateX: sliderPosition }],
+                },
+              ]}
+            >
+              {/* Left edge handle */}
+              <View 
+                style={styles.selectionEdgeHandle}
+                {...leftEdgePanResponder.panHandlers}
+              />
+              
+              {/* Right edge handle */}
+              <View 
+                style={[styles.selectionEdgeHandle, styles.selectionEdgeHandleRight]}
+                {...rightEdgePanResponder.panHandlers}
+              />
+            </View>
+          )}
         </View>
 
         {/* Time indicators */}
@@ -314,13 +486,28 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   trackContainer: {
-    width: '100%',
+    width: Dimensions.get('window').width,
     alignItems: 'center',
     marginTop: 24,
     marginBottom: 24,
-    marginHorizontal: -24,
+    marginLeft: -24,
+    marginRight: -24,
     overflow: 'visible',
     minHeight: 80,
+    justifyContent: 'center',
+    height: 80,
+  },
+  waveformWrapper: {
+    width: Dimensions.get('window').width,
+    height: 80,
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    overflow: 'hidden',
+  },
+  waveformAnimatedWrapper: {
+    width: '100%',
+    height: 80,
+    alignItems: 'flex-start',
     justifyContent: 'center',
   },
   trackImage: {
@@ -382,6 +569,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     tintColor: '#FFFFFF',
+    opacity: 1,
   },
   timeContainer: {
     flexDirection: 'row',
@@ -403,10 +591,10 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   creationModeButtonInactive: {
-    backgroundColor: '#D9D9D9',
+    backgroundColor: '#2b2b2b',
   },
   creationModeButtonActive: {
-    backgroundColor: '#2b2b2b',
+    backgroundColor: '#D9D9D9',
   },
   creationModeText: {
     fontSize: 24,
@@ -414,10 +602,10 @@ const styles = StyleSheet.create({
     fontFamily: 'Courier',
   },
   creationModeTextInactive: {
-    color: '#121212',
+    color: '#EDEDED',
   },
   creationModeTextActive: {
-    color: '#EDEDED',
+    color: '#121212',
   },
 });
 

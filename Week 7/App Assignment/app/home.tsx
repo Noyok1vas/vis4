@@ -17,7 +17,7 @@ export default function HomeScreen() {
         >
           <View style={styles.buttonCircle}>
             <Image 
-              source={require('../assets/chevron-left.png')} 
+              source={require('../assets/icon/chevron-left.png')} 
               style={styles.chevronIcon}
               resizeMode="contain"
             />
@@ -32,7 +32,7 @@ export default function HomeScreen() {
         >
           <View style={styles.buttonCircle}>
             <Image 
-              source={require('../assets/chevron-right.png')} 
+              source={require('../assets/icon/chevron-right.png')} 
               style={styles.chevronIcon}
               resizeMode="contain"
             />
@@ -69,7 +69,7 @@ export default function HomeScreen() {
           >
             <View style={[styles.muteCircle, isMuted ? styles.muteCircleDark : styles.muteCircleLight]}>
               <Image 
-                source={require('../assets/mute.png')} 
+                source={require('../assets/icon/mute.png')} 
                 style={[styles.muteIcon, isMuted ? styles.muteIconDark : styles.muteIconLight]}
                 resizeMode="contain"
               />
@@ -89,7 +89,7 @@ export default function HomeScreen() {
               onPress={() => setNoiseControl('noiseCancel')}
             >
               <Image 
-                source={require('../assets/NoiseCancel.png')} 
+                source={require('../assets/icon/NoiseCancel.png')} 
                 style={[styles.noiseIcon, noiseControl === 'noiseCancel' && styles.noiseIconActive]}
                 resizeMode="contain"
               />
@@ -100,7 +100,7 @@ export default function HomeScreen() {
               onPress={() => setNoiseControl('noiseOff')}
             >
               <Image 
-                source={require('../assets/NoiseOff.png')} 
+                source={require('../assets/icon/NoiseOff.png')} 
                 style={[styles.noiseIcon, noiseControl === 'noiseOff' && styles.noiseIconActive]}
                 resizeMode="contain"
               />
@@ -111,7 +111,7 @@ export default function HomeScreen() {
               onPress={() => setNoiseControl('ambientSound')}
             >
               <Image 
-                source={require('../assets/AmbientSound.png')} 
+                source={require('../assets/icon/AmbientSound.png')} 
                 style={[styles.noiseIcon, noiseControl === 'ambientSound' && styles.noiseIconActive]}
                 resizeMode="contain"
               />
@@ -120,31 +120,6 @@ export default function HomeScreen() {
           </View>
         </View>
 
-        {/* Music player */}
-        <View style={styles.playerSection}>
-          <View style={styles.playerContent}>
-            <View style={styles.albumArtPlaceholder} />
-            <View style={styles.playerInfo}>
-              <Text style={styles.songName}>Song Name</Text>
-              <Text style={styles.artist}>Artist</Text>
-              <View style={styles.playerProgressBar}>
-                <View style={styles.playerProgressFill} />
-              </View>
-            </View>
-            <View style={styles.playerControls}>
-              <Image 
-                source={require('../assets/play.png')} 
-                style={styles.playerIcon}
-                resizeMode="contain"
-              />
-              <Image 
-                source={require('../assets/forward.png')} 
-                style={styles.playerIcon}
-                resizeMode="contain"
-              />
-            </View>
-          </View>
-        </View>
       </ScrollView>
     </View>
   );
@@ -164,7 +139,7 @@ const styles = StyleSheet.create({
   contentContainer: {
     paddingHorizontal: 24,
     paddingTop: 0,
-    paddingBottom: 40,
+    paddingBottom: 100, // Increased for GlobalPlayer
   },
   earbudImage: {
     width: '100%',
@@ -278,60 +253,6 @@ const styles = StyleSheet.create({
     marginTop: 8,
     fontFamily: 'Courier',
     textAlign: 'center',
-  },
-  playerSection: {
-    backgroundColor: '#2B2B2B',
-    borderRadius: 28,
-    padding: 16,
-    borderWidth: 1,
-  },
-  playerContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 16,
-  },
-  albumArtPlaceholder: {
-    width: 60,
-    height: 60,
-    borderRadius: 16,
-    backgroundColor: '#D9D9D9',
-  },
-  playerInfo: {
-    flex: 1,
-  },
-  songName: {
-    color: '#D9D9D9',
-    fontSize: 16,
-    fontWeight: '500',
-    marginBottom: 4,
-  },
-  artist: {
-    color: '#A3A3A3',
-    fontSize: 14,
-    marginBottom: 8,
-  },
-  playerControls: {
-    flexDirection: 'row',
-    gap: 16,
-    alignItems: 'center',
-  },
-  playerIcon: {
-    width: 24,
-    height: 24,
-    tintColor: '#FFFFFF',
-  },
-  playerProgressBar: {
-    width: '100%',
-    height: 2,
-    backgroundColor: '#A3A3A3',
-    borderRadius: 1,
-    overflow: 'hidden',
-  },
-  playerProgressFill: {
-    width: '30%',
-    height: '100%',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 1,
   },
   navigation: {
     flexDirection: 'row',
