@@ -24,7 +24,7 @@ export default function HomeScreen() {
           </View>
         </TouchableOpacity>
 
-        <Text style={styles.title}>Yokis's Earbuds</Text>
+        <Text style={styles.title}>TongZ's Earbuds</Text>
 
         <TouchableOpacity 
           style={styles.navButton} 

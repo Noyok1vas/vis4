@@ -48,8 +48,8 @@ export const songs: Song[] = [
 
 // 默认播放列表
 export const defaultPlaylist: Playlist = {
-  name: 'Playlist Name',
-  author: 'User',
+  name: 'Shuffle Dream',
+  author: 'TongZ',
   songs: songs,
 };
 

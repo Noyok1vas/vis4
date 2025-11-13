@@ -19,6 +19,7 @@ interface AudioContextType {
   playSong: (song: Song) => Promise<void>;
   nextSong: () => Promise<void>;
   previousSong: () => Promise<void>;
+  setPositionAsync: (positionMillis: number) => Promise<void>; // 设置播放位置
 }
 
 const AudioContext = createContext<AudioContextType | undefined>(undefined);
@@ -31,21 +32,24 @@ const calculateBarCount = (): number => {
   return 1000;
 };
 
-// 生成基于 songId 的波形数据（确保同一首歌每次都生成相同的波形）
+// 生成基于 songId 的波形数据（统一使用第二首歌的波形样式）
 const generateWaveformData = (songId: number, barCount: number): number[] => {
   const data: number[] = [];
+  
+  // 使用第二首歌（id=2）的固定参数，统一所有歌曲的波形样式
+  const fixedSongId = 2; // 固定使用第二首歌的参数
   
   for (let i = 0; i < barCount; i++) {
     const progress = i / barCount;
     
-    // 使用 songId 和索引生成伪随机种子，确保同一首歌生成相同波形
-    let seed = (songId * 12345 + i * 7919) % 233280;
+    // 使用固定 songId 和索引生成伪随机种子，确保同一首歌生成相同波形
+    let seed = (fixedSongId * 12345 + i * 7919) % 233280;
     const normalizedSeed = seed / 233280;
     
-    // 根据 songId 调整频率，使不同歌曲有不同的波形特征
-    const freq1 = 3 + (songId % 5);
-    const freq2 = 8 + (songId % 7);
-    const freq3 = 15 + (songId % 10);
+    // 使用第二首歌的固定频率参数
+    const freq1 = 3 + (fixedSongId % 5); // = 5
+    const freq2 = 8 + (fixedSongId % 7); // = 10
+    const freq3 = 15 + (fixedSongId % 10); // = 17
     
     // 生成多个频率的正弦波组合
     const sine1 = Math.sin(progress * Math.PI * freq1) * 0.4;
@@ -55,9 +59,9 @@ const generateWaveformData = (songId: number, barCount: number): number[] => {
     // 使用种子生成随机值（确保可重复性）
     const random = normalizedSeed * 0.35;
     
-    // 根据 songId 调整基础值，使不同歌曲有不同的整体振幅
-    const variation = ((songId % 10) / 10) * 0.2;
-    const baseValue = 0.4 + variation;
+    // 使用第二首歌的固定基础值
+    const variation = ((fixedSongId % 10) / 10) * 0.2; // = 0.04
+    const baseValue = 0.4 + variation; // = 0.44
     
     const value = Math.max(0.1, Math.min(1, baseValue + sine1 + sine2 + sine3 + random));
     data.push(value);
@@ -312,6 +316,38 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Set playback position
+  const setPositionAsync = async (positionMillis: number) => {
+    try {
+      const currentSound = soundRef.current || sound;
+      if (!currentSound) {
+        return;
+      }
+
+      const status = await currentSound.getStatusAsync();
+      if (status.isLoaded) {
+        // 如果正在播放，先暂停，设置位置后再继续播放
+        const wasPlaying = status.isPlaying;
+        if (wasPlaying) {
+          await currentSound.pauseAsync();
+        }
+        
+        await currentSound.setPositionAsync(positionMillis);
+        setPositionMillis(positionMillis);
+        
+        // 如果之前正在播放，继续播放
+        if (wasPlaying) {
+          await currentSound.playAsync();
+        }
+      }
+    } catch (error) {
+      // 忽略"Seeking interrupted"错误，这通常发生在快速连续设置位置时
+      if (error instanceof Error && !error.message.includes('Seeking interrupted')) {
+        console.error('Error setting position:', error);
+      }
+    }
+  };
+
   // Load audio on mount
   useEffect(() => {
     loadAudio();
@@ -340,6 +376,7 @@ export function AudioProvider({ children }: { children: ReactNode }) {
     playSong,
     nextSong,
     previousSong,
+    setPositionAsync,
   };
 
   return (
